@@ -9,62 +9,52 @@ using System.Threading.Tasks;
 
 namespace InterviewQuestions
 {
-    public class Question2
-    {
-        private ISuccessChecker _initializationChecker;
-        private ISuccessChecker _nullChecker;
-        private ISuccessChecker _dataEntryValidation;
-        private ISuccessChecker _databaseValiator;
+	public class Question2
+	{
+		private ISuccessChecker _initializationChecker;
+		private ISuccessChecker _nullChecker;
+		private ISuccessChecker _dataEntryValidation;
+		private ISuccessChecker _databaseValiator;
 
-        private Question4(ISuccessChecker initializationChecker, ISuccessChecker nullChecker,
-            ISuccessChecker dataEntryChecker, ISuccessChecker databaseValidator)
-        {
-            _initializationChecker = initializationChecker;
-            _nullChecker = nullChecker;
-            _dataEntryValidation = dataEntryChecker;
-            _databaseValiator = databaseValidator;
-        }
+		private Question4(ISuccessChecker initializationChecker, ISuccessChecker nullChecker,
+			ISuccessChecker dataEntryChecker, ISuccessChecker databaseValidator)
+		{
+			_initializationChecker = initializationChecker;
+			_nullChecker = nullChecker;
+			_dataEntryValidation = dataEntryChecker;
+			_databaseValiator = databaseValidator;
+		}
 
-        public string GetResult()
-        {
-            string resultToReturnToUser = string.Empty;
+		//Used fail first approach to reduce nested if statements and it will return as soon as it fails
+		public string GetResult()
+		{
+			string resultToReturnToUser = string.Empty;
+			if (!_initializationChecker.DidSucceed())
+			{
+				return "Entry did not pass initial validation";
+			}
 
-            if (_initializationChecker.DidSucceed())
-            {
-                if (_nullChecker.DidSucceed())
-                {
-                    if (_dataEntryValidation.DidSucceed())
-                    {
-                        if (_databaseValiator.DidSucceed())
-                        {
-                            resultToReturnToUser = "validated";
-                        }
-                        else
-                        {
-                            resultToReturnToUser = "Could not validate database";
-                        }
-                    }
-                    else
-                    {
-                        resultToReturnToUser = "Could not validate data entry";
-                    }
-                }
-                else
-                {
-                    resultToReturnToUser = "Could not validate nulls";
-                }
-            }
-            else
-            {
-                resultToReturnToUser = "Entry did not pass initial validation";
-            }
+			if (!_nullChecker.DidSucceed())
+			{
+				return "Could not validate nulls";
+			}
 
-            return resultToReturnToUser;
-        }
+			if (!_dataEntryValidation.DidSucceed())
+			{
+				return "Could not validate data entry";
+			}
 
-        private interface ISuccessChecker
-        {
-            bool DidSucceed();
-        }
-    }
+			if (!_databaseValidator.DidSucceed())
+			{
+				return "Could not validate database";
+			}
+
+			return "validated";
+		}
+
+		private interface ISuccessChecker
+		{
+			bool DidSucceed();
+		}
+	}
 }
