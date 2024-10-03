@@ -14,3 +14,88 @@ Highest Level number:
 Final code:
 
 
+class Player {
+
+  constructor() {
+    this.health = 20;
+  }
+
+  playTurn(warrior) {
+    if(warrior.feel().isWall()) {
+      warrior.pivot();
+      return;
+    }
+
+    const underAttack = this.isUnderAttack(warrior);
+    const lowHealth = this.hasNotEnoughHealth(warrior);
+    const injured = this.isInjured(warrior);
+    const enemyBehind = this.hasEnemyInDirection(warrior, 'backward');
+    const enemyAhead = this.hasEnemyInDirection(warrior, 'forward');
+
+    if (underAttack && lowHealth) {
+      if (enemyBehind) {
+        warrior.attack('backward');
+      } else {
+        this.move(warrior, 'backward');
+      }
+    } else if (underAttack) {
+      if (enemyBehind) {
+        warrior.attack('backward');
+      } else {
+        this.move(warrior, 'forward');
+      }
+    } else if (injured) {
+      warrior.rest();
+    } else {
+      this.move(warrior, 'forward');
+    }
+
+    // Update health for the next turn
+    this.health = warrior.health();
+  }
+
+  move(warrior, direction) {
+    // Look in the specified direction
+    const spaces = warrior.look(direction);
+    const sight = spaces.find(space => !space.isEmpty());
+
+    if (sight) {
+      if (sight.isUnit()) {
+        const isEnemyInSight = sight.getUnit().isEnemy();
+        if (isEnemyInSight) {
+          warrior.shoot(direction);
+          return;
+        }
+      }
+    }
+
+    const space = warrior.feel(direction);
+
+    if (space.isEmpty()) {
+      warrior.walk(direction);
+    } else if (space.isUnit() && space.getUnit().isBound()) {
+      warrior.rescue(direction);
+    } else if (space.isUnit() && space.getUnit().isEnemy()) {
+      warrior.attack(direction);
+    } else {
+      warrior.rest();
+    }
+  }
+
+  isUnderAttack(warrior) {
+    return warrior.health() < this.health;
+  }
+
+  isInjured(warrior) {
+    return warrior.health() < warrior.maxHealth();
+  }
+
+  hasNotEnoughHealth(warrior) {
+    return warrior.health() < 10;
+  }
+
+  hasEnemyInDirection(warrior, direction) {
+    const space = warrior.feel(direction);
+    return space.isUnit() && space.getUnit().isEnemy();
+  }
+}
